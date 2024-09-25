@@ -1,0 +1,89 @@
+trigger:
+- dev
+
+pool: Agent-Cool
+
+stages:
+- stage: terraforminit
+  displayName: Terraform  init
+  jobs:
+  - job: terraforminit
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+       terraformVersion: 'latest'
+    - task: TerraformTaskV4@4
+      inputs:
+       provider: 'azurerm'
+       command: 'init'
+       backendServiceArm: 'Petroleum-pipeline'
+       backendAzureRmResourceGroupName: 'pipeline-rg'
+       backendAzureRmStorageAccountName: 'pipelinesg'
+       backendAzureRmContainerName: 'pipelinecn'
+       backendAzureRmKey: 'pipeline.terraform.tfstate'
+
+- stage: terraformplan
+  displayName: Terraform Plan
+  jobs:
+  - job: terraformplan
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+       terraformVersion: 'latest'
+    - task: TerraformTaskV4@4
+      inputs:
+       provider: 'azurerm'
+       command: 'init'
+       backendServiceArm: 'Petroleum-pipeline'
+       backendAzureRmResourceGroupName: 'pipeline-rg'
+       backendAzureRmStorageAccountName: 'pipelinesg'
+       backendAzureRmContainerName: 'pipelinecn'
+       backendAzureRmKey: 'pipeline.terraform.tfstate'
+       environmentServiceNameAzureRM: 'Petroleum-pipeline'
+    - task: TerraformTaskV4@4
+      inputs:
+       provider: 'azurerm'
+       command: 'plan'
+       environmentServiceNameAzureRM: 'Petroleum-pipeline'
+
+- stage: manualvalidation
+  pool: server
+  displayName: Manual Validation
+  jobs:
+  - job:
+    steps:
+    - task: ManualValidation@1
+      inputs:
+        notifyUsers: 'jaylunagariya7@gmail.com'
+        approvers: 'jaylunagariya7@gmail.com'
+        
+- stage: terraformapply
+  displayName: Terraform Apply
+  jobs:
+  - job:
+    steps:
+    - task: TerraformInstaller@1
+      inputs:
+       terraformVersion: 'latest'
+    - task: TerraformTaskV4@4
+      inputs:
+       provider: 'azurerm'
+       command: 'init'
+       backendServiceArm: 'Petroleum-pipeline'
+       backendAzureRmResourceGroupName: 'pipeline-rg'
+       backendAzureRmStorageAccountName: 'pipelinesg'
+       backendAzureRmContainerName: 'pipelinecn'
+       backendAzureRmKey: 'pipeline.terraform.tfstate'
+       environmentServiceNameAzureRM: 'Petroleum-pipeline'
+       environmentServiceNameGCP: 
+       
+    - task: TerraformTaskV4@4
+      inputs:
+       provider: 'azurerm'
+       command: 'plan'
+       environmentServiceNameAzureRM: 'Petroleum-pipeline'
+    - task: TerraformTaskV4@4
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        environmentServiceNameAzureRM: 'Petroleum-pipeline'
