@@ -46,7 +46,20 @@ The pipeline includes the following stages:
   - Go to **Project Settings > Service Connections**.
   - Add a new Docker Registry service connection with your Docker Hub credentials (username and password or access token).
   
-- The pipeline triggers on changes to the `react` branch but excludes the `master` and `interview` branches.
+- The pipeline triggers on changes to the `react` branch but excludes the `master` and `interview` branches by default. **You can modify the trigger settings to suit your branch requirements**.
+  - Example:
+    ```yaml
+    trigger:
+      branches:
+        include:
+          - your-branch-name
+    ```
+
+- By default, the pipeline is set to run on a **Linux pool**. **You can change the pool setting based on the operating system of your agent**.
+  - Example:
+    ```yaml
+    pool: your-pool-name
+    ```
 
 ## Steps to Use
 
@@ -62,9 +75,10 @@ The pipeline includes the following stages:
 
 ### 4. **Customize the Pipeline**
    - Modify the pipeline YAML file to specify your Docker Hub repository, tags, and any custom build options in the `Dockerfile`.
-   
+   - **Change the trigger branches and pool details** as per your project requirements.
+
 ### 5. **Run the Pipeline**
-   Once all configurations are complete, you can trigger the pipeline either by pushing changes to the `react` branch or manually from the Azure DevOps interface.
+   Once all configurations are complete, you can trigger the pipeline either by pushing changes to the specified branch or manually from the Azure DevOps interface.
 
 ## Conclusion
 
