@@ -1,0 +1,49 @@
+trigger:
+  branches:
+    include:
+      - react
+    exclude:
+      - master
+      - interview
+
+pool: linux
+
+stages:
+  - stage: dockerinstall
+    displayName: Docker Installation
+    jobs:
+      - job : dockerinstalljob
+        displayName: Docker Install Job
+        steps:
+        - task: DockerInstaller@0
+          inputs:
+            dockerVersion: '17.09.0-ce'
+      - job: dockerloginjob
+        displayName: Docker Login
+        dependsOn: dockerinstalljob
+        steps:
+        - task: Docker@2
+          inputs:
+            containerRegistry: 'docker-react'
+            command: 'login'
+      - job: dockerbuildjob
+        displayName: Docker build job
+        dependsOn: dockerloginjob
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'docker-react'
+              repository: 'jaylunagariya/pipeline'
+              command: 'build'
+              Dockerfile: 'Dockerfile'
+              tags: 'reactapp'
+      - job: dockerpushjob
+        displayName: Docker Push
+        dependsOn: dockerbuildjob
+        steps:
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'docker-react'
+              repository: 'jaylunagariya/pipeline'
+              command: 'push'
+              tags: 'reactapp'
