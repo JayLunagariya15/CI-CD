@@ -1,0 +1,66 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pool : CoolPool
+
+stages: 
+  - stage: build
+    displayName: Build Stage
+    jobs :
+      - job :
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSource: 'spec'
+              versionSpec: '16.x'
+            
+          - task: Npm@1
+            inputs:
+              command: 'install'
+          
+          - task: Npm@1
+            inputs:
+              command: 'custom'
+              customCommand: 'run build'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.SourcesDirectory)/build'
+              ArtifactName: 'frontendArtifact'
+              publishLocation: 'Container'
+
+  - stage: release
+    dependsOn: build
+    displayName: Release / Deploy Stage
+    jobs:
+      - job:
+        steps: 
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'frontendArtifact'
+              downloadPath: '$(Build.ArtifactStagingDirectory)'
+          # - task: SSH@0
+          #   inputs:
+          #     sshEndpoint: 'frontend-connection'
+          #     runOptions: 'commands'
+          #     commands: 'sudo apt install -y nginx'
+          #     readyTimeout: '20000'
+              
+          - task: CopyFilesOverSSH@0
+            inputs:
+              sshEndpoint: 'frontend-connection'
+              sourceFolder: '$(System.ArtifactsDirectory)/frontendArtifact'
+              contents: '**'
+              targetFolder: '/tmp/frontend'
+              readyTimeout: '20000'
+
+          - task: SSH@0
+            inputs:
+              sshEndpoint: 'frontend-connection'
+              runOptions: 'commands'
+              commands: 'sudo cp -r /tmp/frontend/* /var/www/html/'
+              readyTimeout: '20000'
